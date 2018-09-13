@@ -35,6 +35,8 @@ import java.util.Arrays;
 import java.util.Collections;
 
 /**
+ * Deploy apps to Cloud Foundry through Spinnaker.
+ *
  * @author Greg Turnquist
  */
 public class SpinnakerCloudFoundryDeployer implements AppDeployer {
@@ -55,9 +57,11 @@ public class SpinnakerCloudFoundryDeployer implements AppDeployer {
 	public String deploy(AppDeploymentRequest appDeploymentRequest) {
 
 		CloudFoundryAccountCredentials credentials = new CloudFoundryAccountCredentials();
-
+		credentials.setOrg("spinnaker");
 
 		CloudFoundryDeployDescription description = new CloudFoundryDeployDescription();
+
+		description.setCredentials(credentials);
 
 		Names names = Names.parseName(appDeploymentRequest.getDefinition().getName());
 		description.setApplication(names.getApp());
@@ -79,7 +83,7 @@ public class SpinnakerCloudFoundryDeployer implements AppDeployer {
 
 		DeploymentResult results = handler.handle(description, Collections.emptyList());
 
-		return results.getDeployedNames().get(0);
+		return results.getServerGroupNameByRegion().values().stream().findFirst().get();
 	}
 
 	@Override
@@ -101,7 +105,13 @@ public class SpinnakerCloudFoundryDeployer implements AppDeployer {
 	}
 
 	@Override
-	public AppStatus status(String s) {
+	public AppStatus status(String appName) {
+
+		CloudFoundryAccountCredentials credentials = new CloudFoundryAccountCredentials();
+
+
+		cloudFoundryClientFactory.createCloudFoundryClient(credentials, true);
+
 		return null;
 	}
 }

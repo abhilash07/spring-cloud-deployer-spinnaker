@@ -87,7 +87,9 @@ public class SpinnakerCloudFoundryDeployerTests {
 	public void shouldHandleBasicDeploy() throws MalformedURLException {
 		// given
 		given(cloudFoundryClientFactory.createCloudFoundryClient(any(), eq(true))).willReturn(cloudFoundryClient);
-		given(cloudFoundryClient.getApplicationInstances("app-stack-v000")).willReturn(new InstancesInfo(Collections.emptyList()));
+		given(cloudFoundryClient.getApplicationInstances("app-stack-v000")).willReturn(new InstancesInfo(Collections.singletonList(new HashMap(){{
+			put("state", "RUNNING");
+		}})));
 
 		// when
 		deployer.deploy(new AppDeploymentRequest(
@@ -100,8 +102,19 @@ public class SpinnakerCloudFoundryDeployerTests {
 			.map(status -> status.getStatus())
 			.collect(Collectors.toList());
 
-		assertThat(statuses.size(), equalTo(4));
+		assertThat(statuses.size(), equalTo(12));
 		assertThat(statuses.get(0), equalTo("Creating task TEST"));
+		assertThat(statuses.get(1), equalTo("Initializing handler..."));
+		assertThat(statuses.get(2), equalTo("Found next sequence 000."));
+		assertThat(statuses.get(3), equalTo("Creating application app-stack-v000"));
+		assertThat(statuses.get(4), equalTo("Memory set to 1024"));
+		assertThat(statuses.get(5), equalTo("Disk limit set to 1024"));
+		assertThat(statuses.get(6), equalTo("Successfully downloaded 1110374 bytes"));
+		assertThat(statuses.get(7), equalTo("Uploading 1110374 bytes to app-stack-v000"));
+		assertThat(statuses.get(8), containsString("Deleted"));
+		assertThat(statuses.get(9), equalTo("Setting environment variables..."));
+		assertThat(statuses.get(10), equalTo("Starting app-stack-v000"));
+		assertThat(statuses.get(11), equalTo("Done operating on app-stack-v000."));
 	}
 
 
